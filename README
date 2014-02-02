@@ -6,4 +6,4 @@ and ext4, haven't tried any others). This program might be buggy, so check
 md5sums before and after. Makes files smaller than `cp --sparse=always' and
 just as small as `dd conv=sparse'.
 
-To install, just do something like "gcc sparse.c -o ~/bin/sparse".
+To install, just do something like `gcc sparse.c -o ~/bin/sparse'.
