@@ -1,3 +1,4 @@
+    #define _FILE_OFFSET_BITS 64
     #define _GNU_SOURCE             /* See feature_test_macros(7) */
     #include <fcntl.h>
     #include <sys/types.h>
