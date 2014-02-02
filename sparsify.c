@@ -43,7 +43,7 @@
                 return -1;
             }
      
-            printf("sparseifying %s ", file);
+            printf("sparsifying %s ", file);
             fflush(stdout);
             while ((rsize = read(fh, buff, BLOCKSIZE)) > 0) {
                 result = memcmp(buff, ebuff,rsize);
