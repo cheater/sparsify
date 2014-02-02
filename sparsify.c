@@ -28,8 +28,8 @@
         }
      
         memset(ebuff, 0, BLOCKSIZE);        // prepare a block of 0's
-     
-        for (int i = 1; i < argc; i++) {
+        int i;
+        for (i = 1; i < argc; i++) {
             char* file=argv[i];
             curpos = 0;
             pstart = 0;
