@@ -1,0 +1,92 @@
+remcohn is the original author of the code. He allowed me to distribute it
+under a free software license. Here's the relevant log:
+
+11:59 -!- cheater__ [~cheater@p57AE8D43.dip0.t-ipconnect.de] has joined #btrfs
+11:59 -!- Topic for #btrfs: http://btrfs.wiki.kernel.org | Pastebin your kernel
+    logs: nc cwillu.com 10101 < /dev/kmsg
+11:59 -!- Topic set by cwillu_at_work [] [Tue Aug 20 17:55:31 2013]
+11:59 -!- Irssi: #btrfs: Total of 277 nicks [0 ops, 0 halfops, 0 voices, 277
+    normal]
+11:59 -!- Channel #btrfs created Sun Dec  9 16:01:30 2007
+11:59 -!- Irssi: Join to #btrfs was synced in 1 secs
+11:59 < cheater__ > hi
+11:59 -!- chandan [~chandan@106.51.174.17] has joined #btrfs
+11:59 < cheater__ > does anyone know of a way to make a non-sparse file sparse
+    again?
+12:00 < cheater__ > the file in question is a 10 GB fs image (ext2) but only 1
+    GB of that are used.
+12:02 <        Ke > mount -o loop && fstrim
+12:02 < cheater__ > Ke: i can't modify the fs.
+12:02 <        Ke > or cp --sparse=always
+12:02 < cheater__ > trying cp.
+12:02 <        Ke > dd conv=sparse
+12:03 < cheater__ > i actually stumbled upon it recently, but disregarded it
+    because i misread the page... but after i asked the question i read that
+    page again and decided to try it :)
+12:03 < cheater__ > dd conv=sparse... hadn't seen that before
+12:03 < cheater__ > is it possible to use dd to un-bzip2 files as sparse?
+12:04 < cheater__ > something like bzcat2 file.bz2 | dd conv=sparse of=file.img
+12:05 <   remcohn > i made myself a 'sparsify' tool, that makes files sparce
+in-place with the hole-punch feature
+12:06 < cheater__ > remcohn: does this work on ext4 as well?..
+12:06 < cheater__ > remcohn: (i don't know)
+12:06 <   remcohn > cheater__, it should work on every FS that supports
+    FALLOC_FL_PUNCH_HOLE
+12:07 <   remcohn > no idea if ext4 is one of them
+12:09 < cheater__ > remcohn: can i get your utility?
+12:09 < cheater__ > bitbucket plz
+12:10 <   remcohn > cheater__, http://pastebin.com/WrdHgnJR
+12:10 < cheater__ > i will try it now!
+12:11 <   remcohn > cheater__, "use at your own risk etc etc etc" :)
+12:12 < cheater__ > remcohn: etc etc?
+12:12 < cheater__ > etc?
+12:12 < cheater__ > :)
+12:13 <   remcohn > i have used it on quite a few files, from a few meg to
+    100's of gigs, and 'it works for me', but please make a backup and verify
+    checksums before and after use. there might be corner cases when it fails.
+    no idea :)
+12:14 < cheater__ > remcohn i will
+12:15 < cheater__ > sparsify.c:32:9: error: ‘for’ loop initial declarations are
+    only allowed in C99 mode
+12:15 < cheater__ > sparsify.c:32:9: note: use option -std=c99 or -std=gnu99 to
+    compile your code
+12:15 < cheater__ > gnu99 i guess?
+12:16 <   remcohn > i used c99, but dont know why. im not a C coder at all,
+    kinda hacked this together
+12:18 <        Ke > in old style C you'll need to use int i; for (i=0;i<n;++i)
+    instead of for (int i=0;i<n;++i)
+12:19 < cheater__ > remcohn: ok
+12:19 < cheater__ > Ke: thx
+12:27 < cheater__ > $ sparsify.unsafe sccharlize-dev-vg00-home
+12:27 < cheater__ > open(): Value too large for defined data type
+12:27 < cheater__ > oops
+12:29 < cheater__ > ok, so... punch.c has this error above
+12:29 <   remcohn > may be a >4gig file on a 32bit system? ive only tested it
+    on 64 bit machines
+12:29 < cheater__ > yeah, it's a 32 gig system and the file is 5 gigs
+12:30 < cheater__ > we're doing: fh = open(file, O_RDWR, O_NOATIME);
+12:30 < cheater__ > i wonder how you could fix that
+12:31 <   remcohn > could make fh a long int, but im sure there is a nicer
+    solution for that
+12:31 < cheater__ > let's try making a long int
+12:31 < cheater__ > :)
+12:33 < cheater__ > nope... didn't help a bit
+12:33 < cheater__ > not even long long int :-))
+12:34 <   remcohn > then it must be the ssize_t struct
+12:34 <   remcohn > eh no, never mind
+12:38 <        Ke > O_LARGEFILE perhaps
+12:38 < cheater__ > #define _FILE_OFFSET_BITS 64
+12:38 <        Ke > I would assume it would be some sort of default on 32-bit
+    distros
+12:38 < cheater__ > at the top of the C file
+12:38 < cheater__ > works now :)
+12:38 <        Ke > yup
+12:40 < cheater__ > nice
+12:43 < cheater__ > the file is 5.0 GB. the .bz2 is 193K, doing bunzip2 and
+    then cp --sparse=always ends up 5.2M, bzcat ... | dd conv=sparse is 4.2 MB,
+    using your code it's 4.2 MB as well.
+12:46 <   remcohn > :)
+13:27 < cheater__ > remcohn: can i publish this code on my bitbucket under a
+    free software license?
+14:16 <   remcohn > cheater__, sure
+15:55 < cheater__ > remcohn: ok, thx
